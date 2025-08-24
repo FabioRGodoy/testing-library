@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Run unit tests
@@ -22,10 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
-          cache: 'pnpm'
-
-      - name: Enable Corepack (pnpm)
-        run: corepack enable
+          cache: pnpm
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -33,18 +34,16 @@ jobs:
           version: 9
           run_install: false
 
-      - name: Install deps
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
-        continue-on-error: false
 
       - name: Run tests
         run: pnpm test
 
       - name: Coverage
-        if: ${{ success() }}
         run: pnpm coverage
 
       - name: Upload coverage artifact
