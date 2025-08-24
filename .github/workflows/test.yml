@@ -9,45 +9,34 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   test:
-    name: Run unit tests
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: 22.x
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
           cache: pnpm
 
-      - name: Enable Corepack and PNPM
-        run: |
-          set -euxo pipefail
-          node -v
-          corepack enable
-          corepack prepare pnpm@9.12.0 --activate
-          corepack pnpm -v
-
       - name: Install dependencies
-        run: corepack pnpm install --frozen-lockfile
+        run: pnpm i --frozen-lockfile
 
       - name: Typecheck
-        run: corepack pnpm typecheck
-        continue-on-error: false
+        if: ${{ hashFiles('tsconfig.json') != '' }}
+        run: pnpm typecheck
 
       - name: Run tests
-        run: corepack pnpm test
+        run: pnpm test
 
       - name: Coverage
-        run: corepack pnpm coverage
+        run: pnpm coverage
 
       - name: Upload coverage artifact
         if: ${{ success() }}
