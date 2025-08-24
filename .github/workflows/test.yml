@@ -28,29 +28,26 @@ jobs:
           node-version: 22.x
           cache: pnpm
 
-      # 🎯 AQUI: usa Corepack pra instalar/ativar PNPM e valida o PATH
       - name: Enable Corepack and PNPM
-        shell: bash
         run: |
           set -euxo pipefail
           node -v
-          corepack --version || true
           corepack enable
           corepack prepare pnpm@9.12.0 --activate
-          which pnpm
-          pnpm -v
+          corepack pnpm -v
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: corepack pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: corepack pnpm typecheck
+        continue-on-error: false
 
       - name: Run tests
-        run: pnpm test
+        run: corepack pnpm test
 
       - name: Coverage
-        run: pnpm coverage
+        run: corepack pnpm coverage
 
       - name: Upload coverage artifact
         if: ${{ success() }}
